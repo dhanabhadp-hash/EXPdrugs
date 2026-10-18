@@ -316,16 +316,26 @@
     }
 
     async function callGasPost(payload) {
-      try {
-        let response = await fetch(GAS_API_URL, {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-        return await response.json();
-      } catch (err) {
-        return { status: 'error', message: err.toString() };
-      }
+  try {
+    let response = await fetch(GAS_API_URL, {
+      method: 'POST',
+      // ใช้ text/plain เพื่อป้องกันเบราว์เซอร์ส่ง Preflight CORS (OPTIONS) ไปชน Google แล้วเด้ง 404
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    let textResult = await response.text();
+    try {
+      return JSON.parse(textResult);
+    } catch (e) {
+      return { status: 'success', raw: textResult };
     }
+  } catch (err) {
+    return { status: 'error', message: err.toString() };
+  }
+}
 
     function switchPage(pageId, element) {
       document.querySelectorAll('.spa-page').forEach(p => p.classList.add('d-none'));
