@@ -1,9 +1,0 @@
-{
-  "name": "hospital-drug-app",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Sob Prab Hospital Drug Expiry System",
-  "scripts": {
-    "build": "echo 'No build required'"
-  }
-}
