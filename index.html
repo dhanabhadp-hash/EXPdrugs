@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRUGS EXP ALERT</title>
+<style>
+:root{--bg:#fcfaf7;--fg:#423d38;--mut:#797067;--line:#e3e0dd;--p:#fe6e00;--ps:#ff6b00;--ok:#00c758;--bad:#fb2c36;--warn:#edb200;--sh:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06)}
+*{box-sizing:border-box;margin:0}
+body{font:14px/20px ui-sans-serif,system-ui,"Sarabun",sans-serif;background:var(--bg);color:var(--fg)}
+header{position:fixed;inset:0 0 auto 0;height:64px;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:5}
+header b{font-size:18px;letter-spacing:.02em}header b span{color:var(--p)}
+#st{display:flex;gap:8px;align-items:center;background:rgba(255,255,255,.1);border-radius:9999px;padding:6px 12px;font-size:13px}
+#st i{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+#st.ok i{background:var(--ok)}#st.err i{background:var(--bad)}
+aside{position:fixed;top:64px;bottom:0;left:0;width:256px;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);border-right:1px solid rgba(255,255,255,.1);padding:16px;z-index:4}
+aside a{display:flex;gap:10px;align-items:center;padding:6px 12px;margin-bottom:4px;border-radius:8px;color:rgba(255,255,255,.7);font-weight:700;font-size:13px;cursor:pointer;height:36px}
+aside a:hover,aside a.on{background:var(--p);color:#fff}
+main{margin-left:256px;padding:88px 32px 32px;max-width:1400px}
+h1{font-size:24px;line-height:32px;font-weight:700;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:24px;box-shadow:var(--sh)}
+.card small{font-size:12px;font-weight:600;letter-spacing:.05em;color:var(--mut)}
+.card .n{font-size:32px;font-weight:700;margin-top:4px}
+.two{display:grid;grid-template-columns:1fr 1.4fr;gap:16px}
+.bars{display:flex;gap:12px;align-items:flex-end;height:160px;margin-top:16px}
+.bars div{flex:1;text-align:center;font-size:12px;color:var(--mut)}
+.bars span{display:block;background:rgba(254,110,0,.6);border-radius:4px 4px 0 0;margin-bottom:6px;color:#fff;font-weight:700;min-height:2px}
+table{width:100%;border-collapse:collapse}
+th{height:48px;background:rgba(254,110,0,.05);color:var(--ps);font-size:12px;font-weight:600;letter-spacing:.05em;text-align:left;padding:0 8px}
+td{padding:8px;color:var(--mut);border-top:1px solid var(--line)}
+td:nth-child(2){color:var(--fg);font-weight:600}
+.b{display:inline-block;border-radius:9999px;padding:4px 10px;font-size:12px;font-weight:600;white-space:nowrap}
+.b.x{background:#fee2e2;color:#b91c1c}.b.w{background:#fef9c2;color:#874b00}.b.g{background:#dcfce7;color:#016630}
+form{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:760px}
+label{display:flex;flex-direction:column;gap:4px;font-weight:500}label.f{grid-column:1/-1}
+input,select,textarea{height:40px;border:1px solid var(--line);border-radius:6px;padding:0 12px;font:inherit;background:#fff;color:var(--fg)}
+textarea{height:72px;padding:8px 12px}
+input:focus,select:focus,textarea:focus{outline:2px solid #f97015;border-color:transparent}
+button{height:40px;padding:0 16px;border:0;border-radius:6px;background:var(--p);color:#fff;font:500 14px inherit;cursor:pointer}
+button:hover{background:var(--ps)}button:disabled{opacity:.5}
+.bar{display:flex;gap:12px;align-items:end;margin-bottom:16px;flex-wrap:wrap}
+#toast{position:fixed;right:24px;bottom:24px;background:#000c;color:#fff;padding:12px 16px;border-radius:8px;display:none;z-index:9}
+.v{display:none}.v.on{display:block}
+@media(max-width:800px){aside{width:64px}aside a span{display:none}main{margin-left:64px;padding:88px 16px}.grid,.two,form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><b>💊 DRUGS <span>EXP</span> ALERT</b><div id="st"><i></i><span>กำลังเชื่อมต่อ...</span></div></header>
+<aside>
+  <a data-v="dash" class="on">📊 <span>Dashboard</span></a>
+  <a data-v="add">➕ <span>บันทึกรายการยาใกล้ Exp</span></a>
+  <a data-v="rep">📄 <span>รายงานบัญชียาใกล้หมดอายุ</span></a>
+</aside>
+<main>
+<section id="dash" class="v on">
+  <h1>Dashboard</h1>
+  <div class="grid" id="cards"></div>
+  <div class="two">
+    <div class="card"><b>จำนวนรายการหมดอายุ 6 เดือนข้างหน้า</b><div class="bars" id="bars"></div></div>
+    <div class="card"><b>ใกล้หมดอายุที่สุด</b><table><thead><tr><th>วันที่</th><th>ชื่อยา</th><th>จำนวน</th><th>สถานะ</th></tr></thead><tbody id="soon"></tbody></table></div>
+  </div>
+</section>
+
+<section id="add" class="v">
+  <h1>บันทึกรายการยาใกล้ Exp</h1>
+  <div class="card"><form id="f">
+    <label class="f">ชื่อยา *<input name="name" required></label>
+    <label>จำนวน<input name="qty" type="number" min="0"></label>
+    <label>วันที่หมดอายุ *<input name="exp" type="date" required></label>
+    <label>Lot<input name="lot"></label>
+    <label>Location<input name="loc" list="locs" placeholder="ห้องยา / คลังยา"><datalist id="locs"></datalist></label>
+    <label class="f">Remark<textarea name="remark"></textarea></label>
+    <label>ผู้บันทึก<input name="by"></label>
+    <div style="align-self:end"><button id="save">บันทึกข้อมูล</button></div>
+  </form></div>
+</section>
+
+<section id="rep" class="v">
+  <h1>รายงานบัญชียาใกล้หมดอายุ</h1>
+  <div class="bar">
+    <label>เดือน<select id="fm"></select></label>
+    <label>ปี (พ.ศ.)<select id="fy"></select></label>
+    <button id="pdf">ส่งออก PDF</button>
+    <span id="cnt" style="color:var(--mut)"></span>
+  </div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th><input type="checkbox" id="all" style="height:auto"></th><th>#</th><th>ชื่อยา</th><th>จำนวน</th><th>วันที่หมดอายุ</th><th>Lot</th><th>Location</th><th>สถานะ</th></tr></thead><tbody id="tb"></tbody></table></div>
+</section>
+</main>
+<div id="toast"></div>
+
+<script>
+const M=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const $=s=>document.querySelector(s);let rows=[],sel=new Set(),view=[];
+const api=(action,d={})=>fetch('/api/gas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...d})}).then(r=>r.json());
+const toast=t=>{const e=$('#toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',3000)};
+const th=i=>{const[y,m,d]=i.split('-');return `${d}/${m}/${+y+543}`};
+const today=new Date(new Date().toDateString());
+const left=e=>Math.round((new Date(e+'T00:00')-today)/864e5);
+const badge=e=>{const d=left(e);return d<0?'<span class="b x">หมดอายุแล้ว</span>':d<=30?`<span class="b w">อีก ${d} วัน</span>`:`<span class="b g">อีก ${d} วัน</span>`};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+document.querySelectorAll('aside a').forEach(a=>a.onclick=()=>{
+  document.querySelectorAll('aside a,.v').forEach(x=>x.classList.remove('on'));
+  a.classList.add('on');$('#'+a.dataset.v).classList.add('on')});
+
+async function ping(){
+  const s=$('#st');
+  try{const r=await api('ping');s.className=r.ok?'ok':'err';s.lastChild.textContent=r.ok?'เชื่อมต่อฐานข้อมูลแล้ว':'การเชื่อมต่อผิดพลาด'}
+  catch{s.className='err';s.lastChild.textContent='ไม่สามารถเชื่อมต่อได้'}
+}
+async function load(){
+  const r=await api('list');if(!r.ok){toast(r.error||'โหลดข้อมูลไม่สำเร็จ');return}
+  rows=r.rows;render();
+}
+function render(){
+  const ym=new Date().toISOString().slice(0,7);
+  const c=[['รายการทั้งหมด',rows.length],['หมดอายุแล้ว',rows.filter(r=>left(r.exp)<0).length],['ภายใน 30 วัน',rows.filter(r=>{const d=left(r.exp);return d>=0&&d<=30}).length],['หมดอายุเดือนนี้',rows.filter(r=>r.exp.slice(0,7)===ym).length]];
+  $('#cards').innerHTML=c.map(([t,n])=>`<div class="card"><small>${t}</small><div class="n">${n}</div></div>`).join('');
+  const now=new Date(),b=[];
+  for(let i=0;i<6;i++){const d=new Date(now.getFullYear(),now.getMonth()+i,1),k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');b.push([M[d.getMonth()].slice(0,3)+'.',rows.filter(r=>r.exp.slice(0,7)===k).length])}
+  const mx=Math.max(1,...b.map(x=>x[1]));
+  $('#bars').innerHTML=b.map(([l,n])=>`<div><span style="height:${n/mx*110}px">${n||''}</span>${l}</div>`).join('');
+  $('#soon').innerHTML=rows.filter(r=>left(r.exp)>=0).slice(0,8).map(r=>`<tr><td>${th(r.exp)}</td><td>${esc(r.name)}</td><td>${esc(r.qty)}</td><td>${badge(r.exp)}</td></tr>`).join('')||'<tr><td colspan=4>ไม่มีรายการ</td></tr>';
+  $('#locs').innerHTML=[...new Set(['ห้องยา','คลังยา',...rows.map(r=>r.loc).filter(Boolean)])].map(l=>`<option value="${esc(l)}">`).join('');
+  filters();
+}
+function filters(){
+  const fm=$('#fm'),fy=$('#fy'),m0=fm.value,y0=fy.value;
+  const ys=[...new Set(rows.map(r=>+r.exp.slice(0,4)))].sort();
+  fm.innerHTML='<option value="">ทุกเดือน</option>'+M.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+  fy.innerHTML='<option value="">ทุกปี</option>'+ys.map(y=>`<option value="${y}">${y+543}</option>`).join('');
+  fm.value=m0;fy.value=y0;table();
+}
+function table(){
+  const m=$('#fm').value,y=$('#fy').value;
+  view=rows.filter(r=>(!m||+r.exp.slice(5,7)==m)&&(!y||r.exp.slice(0,4)==y));
+  $('#cnt').textContent=`พบ ${view.length} รายการ`+(sel.size?` • เลือก ${sel.size}`:'');
+  $('#tb').innerHTML=view.map((r,i)=>`<tr><td><input type="checkbox" data-r="${r.row}" ${sel.has(r.row)?'checked':''} style="height:auto"></td><td>${i+1}</td><td>${esc(r.name)}</td><td>${esc(r.qty)}</td><td>${th(r.exp)}</td><td>${esc(r.lot)}</td><td>${esc(r.loc)}</td><td>${badge(r.exp)}</td></tr>`).join('')||'<tr><td colspan=8>ไม่พบข้อมูล</td></tr>';
+}
+$('#fm').onchange=$('#fy').onchange=()=>{sel.clear();table()};
+$('#tb').onchange=e=>{const r=+e.target.dataset.r;e.target.checked?sel.add(r):sel.delete(r);table()};
+$('#all').onchange=e=>{sel=e.target.checked?new Set(view.map(r=>r.row)):new Set();table()};
+
+$('#f').onsubmit=async e=>{
+  e.preventDefault();const b=$('#save');b.disabled=true;
+  const d=Object.fromEntries(new FormData(e.target));localStorage.by=d.by;
+  try{const r=await api('add',d);if(r.ok){toast('บันทึกข้อมูลเรียบร้อย');e.target.reset();e.target.by.value=localStorage.by||'';await load()}else toast(r.error)}
+  catch{toast('บันทึกไม่สำเร็จ')}b.disabled=false;
+};
+$('#f').by.value=localStorage.by||'';
+
+$('#pdf').onclick=async()=>{
+  const list=sel.size?view.filter(r=>sel.has(r.row)):view;
+  if(!list.length)return toast('ไม่มีข้อมูลสำหรับส่งออก');
+  const m=$('#fm').value,y=$('#fy').value;
+  const title=(m?'ประจำเดือน'+M[m-1]+' ':'')+(y?'พ.ศ. '+(+y+543):(m?'':'ทุกช่วงเวลา'));
+  const b=$('#pdf');b.disabled=true;b.textContent='กำลังสร้าง PDF...';
+  try{
+    const r=await api('pdf',{rows:list,title});if(!r.ok)throw r.error;
+    const a=document.createElement('a');a.href='data:application/pdf;base64,'+r.base64;a.download='drug-exp-report.pdf';a.click();
+  }catch(e){toast('สร้าง PDF ไม่สำเร็จ')}
+  b.disabled=false;b.textContent='ส่งออก PDF';
+};
+
+ping();load();setInterval(ping,60000);setInterval(load,120000);
+</script>
+</body>
+</html>
